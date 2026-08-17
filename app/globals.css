@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@layer base { * { @apply border-white/10; } body { @apply min-h-screen bg-steam-ink text-steam-mist antialiased; font-family: Pretendard, Inter, Arial, sans-serif; } input, textarea, select { @apply rounded-lg border bg-black/20 px-3 py-2 text-white outline-none focus:border-steam-blue; } }
+@layer components { .panel { @apply rounded-2xl border border-white/10 bg-steam-card/70 p-5 shadow-steam backdrop-blur; } .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-steam-blue px-4 py-2 font-semibold text-steam-ink transition hover:brightness-110 disabled:opacity-50; } .btn-quiet { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 px-4 py-2 transition hover:bg-white/10; } }

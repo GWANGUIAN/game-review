@@ -1,0 +1,2 @@
+import { requireAdmin } from "@/lib/auth"; import { AdminMembers } from "@/components/admin-members";
+export default async function AdminPage() { const { supabase } = await requireAdmin(); const { data: members } = await supabase.from("profiles").select("id,display_name,avatar_url,status,role").order("created_at", { ascending: false }); return <><h1 className="mb-6 text-3xl font-bold text-white">관리자 패널</h1><AdminMembers initial={members ?? []}/></>; }
