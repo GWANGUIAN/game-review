@@ -4,11 +4,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
+  const flowId = request.nextUrl.searchParams.get("sb_flow_id");
   const origin = request.nextUrl.origin;
   if (!code) return NextResponse.redirect(`${origin}/login`);
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(
+    code,
+    flowId ? { flowId } : undefined,
+  );
 
   if (error || !data.user) {
     console.error("OAuth session exchange failed", {
