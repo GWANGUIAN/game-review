@@ -14,7 +14,7 @@ create table public.profiles (
   level integer not null default 1 check (level > 0),
   created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
-create table public.site_settings (id boolean primary key default true check (id), site_title text not null default 'Party Clear', site_description text not null default '우리 모임의 게임 플레이와 리뷰', logo_url text, updated_at timestamptz not null default now());
+create table public.site_settings (id boolean primary key default true check (id), site_title text not null default '종합 게임 동아리', site_description text not null default '우리 모임의 게임 플레이와 리뷰', logo_url text, updated_at timestamptz not null default now());
 insert into public.site_settings (id) values (true);
 create table public.games (id uuid primary key default gen_random_uuid(), name text not null, cover_url text, source public.game_source not null, external_id text, price_krw integer not null default 0 check (price_krw >= 0), created_at timestamptz not null default now(), unique (source, external_id));
 create table public.play_sessions (id uuid primary key default gen_random_uuid(), game_id uuid not null references public.games(id), cover_url text, memo text, total_play_minutes integer not null default 0, starts_at timestamptz, ends_at timestamptz, created_by uuid not null references public.profiles(id), created_at timestamptz not null default now(), updated_at timestamptz not null default now());

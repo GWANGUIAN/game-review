@@ -1,4 +1,4 @@
-# Party Clear
+# 종합 게임 동아리
 
 Google 로그인 기반의 비공개 게임 모임 플레이 세션·리뷰 플랫폼입니다. Next.js 15, Supabase, Vercel을 사용하며 기본 시간대는 한국 표준시입니다.
 
