@@ -24,18 +24,30 @@ export async function GET(request: NextRequest) {
 
   const email = data.user.email?.toLowerCase();
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (email && adminEmail && email === adminEmail) {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("Admin promotion skipped: SUPABASE_SERVICE_ROLE_KEY is not set");
-    } else {
-      const admin = createAdminClient();
-      await admin.auth.admin.updateUserById(data.user.id, {
-        app_metadata: { ...data.user.app_metadata, role: "admin" },
-      });
-      await admin.from("profiles").update({ status: "approved", role: "admin" }).eq("id", data.user.id);
-    }
-  } else if (email && adminEmail) {
+  if (!adminEmail) {
+    console.error("Admin promotion skipped: ADMIN_EMAIL is not set");
+  } else if (email !== adminEmail) {
     console.error("Admin promotion skipped: email mismatch", { loginEmail: email, adminEmailLength: adminEmail.length });
+  } else if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("Admin promotion skipped: SUPABASE_SERVICE_ROLE_KEY is not set");
+  } else {
+    const admin = createAdminClient();
+    const { error: userUpdateError } = await admin.auth.admin.updateUserById(data.user.id, {
+      app_metadata: { ...data.user.app_metadata, role: "admin" },
+    });
+    if (userUpdateError) {
+      console.error("Admin promotion failed: updateUserById", { message: userUpdateError.message });
+    }
+    const { error: profileUpdateError, data: updatedRows } = await admin
+      .from("profiles")
+      .update({ status: "approved", role: "admin" })
+      .eq("id", data.user.id)
+      .select("id");
+    if (profileUpdateError) {
+      console.error("Admin promotion failed: profiles update", { message: profileUpdateError.message });
+    } else if (!updatedRows || updatedRows.length === 0) {
+      console.error("Admin promotion failed: no profile row matched", { userId: data.user.id });
+    }
   }
 
   return NextResponse.redirect(`${origin}/dashboard`);
