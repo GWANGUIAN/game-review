@@ -28,12 +28,14 @@ export default async function SessionsPage() {
         {data?.map((s) => {
           const game = s.games as unknown as { name: string; cover_url: string | null; price_krw: number | null } | null;
           return (
-            <Link href={`/session/${s.id}`} key={s.id}>
-              <Card className="h-full overflow-hidden p-0 transition-shadow hover:shadow-md">
-                <div
-                  className="h-32 bg-muted bg-cover bg-center"
-                  style={game?.cover_url ? { backgroundImage: `url(${game.cover_url})` } : undefined}
-                />
+            <Link href={`/session/${s.id}`} key={s.id} className="group">
+              <Card className="h-full overflow-hidden p-0 transition-colors hover:border-foreground/30">
+                <div className="relative h-32 overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-muted bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                    style={game?.cover_url ? { backgroundImage: `url(${game.cover_url})` } : undefined}
+                  />
+                </div>
                 <div className="p-4">
                   <h2 className="font-bold text-foreground">{game?.name}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">

@@ -119,18 +119,10 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 md:py-14">
-      {/* 히어로: 벤토 그리드 */}
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
-        <div className="flex flex-col justify-center rounded-2xl border border-border bg-gradient-to-br from-primary/[0.07] to-transparent p-8 md:col-span-2 md:row-span-2 md:p-10">
+      {/* 히어로 */}
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col justify-center border border-border p-8 md:p-10">
           <p className="text-sm font-semibold text-primary">Game Club Archive</p>
-          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl">
-            같이 플레이한
-            <br />
-            기억을, 선명하게.
-          </h1>
-          <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
-            종합 게임 동아리의 세션과 솔직한 후기를 차곡차곡 쌓는 게임 아카이브입니다.
-          </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg">
               <Link href="/login">모임에 참여하기</Link>
@@ -143,45 +135,32 @@ export default async function Home() {
 
         <Link
           href={heroSession ? `/session/${heroSession.id}` : "/sessions"}
-          className="group relative flex min-h-[180px] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-muted bg-cover bg-center p-5 md:col-span-1 md:row-span-2"
-          style={
-            heroSession?.games?.cover_url
-              ? { backgroundImage: `linear-gradient(0deg, rgba(0,0,0,.75), rgba(0,0,0,.15) 60%), url(${heroSession.games.cover_url})` }
-              : undefined
-          }
+          className="group relative flex min-h-[220px] flex-col justify-end overflow-hidden border border-border p-5"
         >
-          <p className="text-xs font-medium uppercase tracking-wide text-white/70">최신 세션</p>
-          <p className="mt-1 text-lg font-bold text-white transition-transform group-hover:translate-x-0.5">
-            {heroSession?.games?.name ?? "아직 세션이 없어요"}
-          </p>
+          <div
+            className="absolute inset-0 bg-muted bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+            style={heroSession?.games?.cover_url ? { backgroundImage: `url(${heroSession.games.cover_url})` } : undefined}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+          <div className="relative z-10">
+            <p className="text-xs font-medium uppercase tracking-wide text-white/70">최신 세션</p>
+            <p className="mt-1 text-lg font-bold text-white transition-transform group-hover:translate-x-0.5">
+              {heroSession?.games?.name ?? "아직 세션이 없어요"}
+            </p>
+          </div>
         </Link>
-
-        <Card className="flex flex-col justify-center p-5 md:col-span-1">
-          <Gamepad2 className="h-5 w-5 text-primary" />
-          <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">{gameCount ?? 0}종</p>
-          <p className="text-sm text-muted-foreground">등록된 게임</p>
-        </Card>
-
-        <Card className="flex flex-col justify-center p-5 md:col-span-1">
-          <Clock className="h-5 w-5 text-primary" />
-          <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">{minutesLabel(totalMinutes)}</p>
-          <p className="text-sm text-muted-foreground">누적 플레이 시간</p>
-        </Card>
       </section>
 
-      {/* 요약 통계 */}
-      <section className="mt-16">
-        <h2 className="text-xl font-bold text-foreground">한눈에 보는 동아리 기록</h2>
-        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="p-5">
-              <stat.icon className="h-5 w-5 text-primary" />
-              <p className="mt-3 text-2xl font-bold tabular-nums text-foreground">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {/* 요약 통계 칩 */}
+      <div className="mt-6 flex flex-wrap gap-2">
+        {stats.map((stat) => (
+          <div key={stat.label} className="inline-flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-sm">
+            <stat.icon className="h-3.5 w-3.5 text-primary" />
+            <span className="font-semibold tabular-nums text-foreground">{stat.value}</span>
+            <span className="text-muted-foreground">{stat.label}</span>
+          </div>
+        ))}
+      </div>
 
       {/* 플레이 시간 랭킹 */}
       <section className="mt-16">
@@ -190,10 +169,10 @@ export default async function Home() {
           <h2 className="text-xl font-bold text-foreground">플레이 시간 랭킹</h2>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">가장 많이 플레이한 멤버 TOP 5</p>
-        <Card className="mt-5 divide-y divide-border p-2">
+        <div className="mt-5 divide-y divide-border border-t border-border">
           {ranking.length ? (
             ranking.map((member, index) => (
-              <div key={member.profileId} className="flex items-center gap-4 px-3 py-3.5">
+              <div key={member.profileId} className="flex items-center gap-4 px-1 py-3.5 transition-colors hover:bg-accent/40">
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     rankColors[index] ?? "bg-muted text-muted-foreground"
@@ -209,7 +188,7 @@ export default async function Home() {
                   <p className="truncate text-sm font-semibold text-foreground">{member.displayName}</p>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                     <div
-                      className="h-full rounded-full bg-primary"
+                      className="h-full rounded-full bg-primary transition-[width] duration-500"
                       style={{ width: `${Math.max(6, (member.totalMinutes / topMinutes) * 100)}%` }}
                     />
                   </div>
@@ -222,7 +201,7 @@ export default async function Home() {
           ) : (
             <p className="p-8 text-center text-sm text-muted-foreground">아직 집계된 플레이 기록이 없습니다.</p>
           )}
-        </Card>
+        </div>
       </section>
 
       {/* 최근 플레이 세션 */}
@@ -231,17 +210,15 @@ export default async function Home() {
         {latestSessions.length ? (
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {latestSessions.map((session) => (
-              <Link key={session.id} href={`/session/${session.id}`}>
-                <Card className="h-full overflow-hidden p-0 transition-shadow hover:shadow-md">
-                  <div
-                    className="flex h-36 items-end bg-muted bg-cover bg-center p-3"
-                    style={
-                      session.games?.cover_url
-                        ? { backgroundImage: `linear-gradient(0deg, rgba(0,0,0,.7), transparent 65%), url(${session.games.cover_url})` }
-                        : undefined
-                    }
-                  >
-                    <span className="text-xs font-medium text-white/85">
+              <Link key={session.id} href={`/session/${session.id}`} className="group">
+                <Card className="h-full overflow-hidden p-0 transition-colors hover:border-foreground/30">
+                  <div className="relative h-36 overflow-hidden">
+                    <div
+                      className="absolute inset-0 bg-muted bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                      style={session.games?.cover_url ? { backgroundImage: `url(${session.games.cover_url})` } : undefined}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <span className="absolute bottom-3 left-3 text-xs font-medium text-white/85">
                       {session.starts_at ? kstDate(session.starts_at) : "날짜 미정"}
                     </span>
                   </div>
@@ -267,10 +244,10 @@ export default async function Home() {
       <section className="mt-16 pb-4">
         <h2 className="text-xl font-bold text-foreground">최근 리뷰</h2>
         <p className="mt-1 text-sm text-muted-foreground">플레이어가 직접 남긴 짧고 솔직한 기록입니다.</p>
-        <Card className="mt-5 divide-y divide-border">
+        <div className="mt-5 divide-y divide-border border-t border-border">
           {latestReviews.length ? (
             latestReviews.map((review) => (
-              <Link key={review.id} href={`/session/${review.session_id}`} className="block px-5 py-4 transition-colors hover:bg-accent/50">
+              <Link key={review.id} href={`/session/${review.session_id}`} className="block px-1 py-4 transition-colors hover:bg-accent/40">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-9 w-9 shrink-0">
                     <AvatarImage src={review.profiles?.avatar_url ?? undefined} alt="" />
@@ -298,7 +275,7 @@ export default async function Home() {
           ) : (
             <p className="p-8 text-center text-sm text-muted-foreground">아직 작성된 리뷰가 없습니다.</p>
           )}
-        </Card>
+        </div>
       </section>
     </main>
   );

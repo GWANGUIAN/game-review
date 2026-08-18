@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,7 +19,7 @@ const statusVariant: Record<Member["status"], "warning" | "success" | "destructi
 
 function MemberRow({ member, onStatusChange }: { member: Member; onStatusChange: (id: string, status: Member["status"]) => void }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-3 transition-colors hover:bg-accent/40">
       <div className="flex items-center gap-3">
         <Avatar className="h-9 w-9">
           <AvatarImage src={member.avatar_url ?? undefined} alt="" />
@@ -67,7 +66,7 @@ export function AdminMembers({ initial }: { initial: Member[] }) {
   const pending = initial.filter((m) => m.status === "pending");
 
   return (
-    <Card className="p-6">
+    <div>
       <p className="text-sm font-semibold text-primary">Member directory</p>
       <h2 className="mt-1 text-xl font-bold text-foreground">멤버 관리</h2>
 
@@ -77,7 +76,7 @@ export function AdminMembers({ initial }: { initial: Member[] }) {
           <TabsTrigger value="all">전체 멤버 ({initial.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="pending">
-          <div className="divide-y divide-border border-y border-border">
+          <div className="divide-y divide-border border-t border-border">
             {pending.length ? (
               pending.map((member) => <MemberRow key={member.id} member={member} onStatusChange={setStatus} />)
             ) : (
@@ -86,13 +85,13 @@ export function AdminMembers({ initial }: { initial: Member[] }) {
           </div>
         </TabsContent>
         <TabsContent value="all">
-          <div className="divide-y divide-border border-y border-border">
+          <div className="divide-y divide-border border-t border-border">
             {initial.map((member) => (
               <MemberRow key={member.id} member={member} onStatusChange={setStatus} />
             ))}
           </div>
         </TabsContent>
       </Tabs>
-    </Card>
+    </div>
   );
 }

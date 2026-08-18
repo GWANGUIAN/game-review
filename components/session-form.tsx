@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { GameSearch, type GameChoice } from "./game-search";
 import { PlayBlocksEditor, type PlayBlock } from "./play-blocks-editor";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,86 +111,84 @@ export function SessionForm({ members, session }: { members: Member[]; session?:
   }
 
   return (
-    <form onSubmit={save} className="mx-auto max-w-2xl">
-      <Card className="space-y-6 p-6">
-        <div className="border-b border-border pb-4">
-          <p className="text-sm font-semibold text-primary">Session editor</p>
-          <h1 className="mt-1 text-2xl font-bold text-foreground">{session ? "세션 수정" : "새 플레이 세션"}</h1>
+    <form onSubmit={save} className="mx-auto max-w-2xl space-y-6">
+      <div className="border-b border-border pb-4">
+        <p className="text-sm font-semibold text-primary">Session editor</p>
+        <h1 className="mt-1 text-2xl font-bold text-foreground">{session ? "세션 수정" : "새 플레이 세션"}</h1>
+      </div>
+
+      <GameSearch
+        value={game}
+        onChange={(next) => {
+          setGame(next);
+          if (!next.id) {
+            setPriceStatus("free");
+            setPrice("");
+          }
+        }}
+      />
+
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-foreground">게임 가격</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {([["free", "무료"], ["paid", "유료"]] as const).map(([value, label]) => (
+            <Button type="button" key={value} variant={priceStatus === value ? "default" : "outline"} onClick={() => setPriceStatus(value)}>
+              {label}
+            </Button>
+          ))}
         </div>
-
-        <GameSearch
-          value={game}
-          onChange={(next) => {
-            setGame(next);
-            if (!next.id) {
-              setPriceStatus("free");
-              setPrice("");
-            }
-          }}
-        />
-
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-foreground">게임 가격</legend>
-          <div className="grid grid-cols-2 gap-2">
-            {([["free", "무료"], ["paid", "유료"]] as const).map(([value, label]) => (
-              <Button type="button" key={value} variant={priceStatus === value ? "default" : "outline"} onClick={() => setPriceStatus(value)}>
-                {label}
-              </Button>
-            ))}
+        {priceStatus === "paid" && (
+          <div className="space-y-1.5">
+            <Label htmlFor="price">정가 (원)</Label>
+            <Input
+              id="price"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              value={price}
+              onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="예: 59000"
+            />
           </div>
-          {priceStatus === "paid" && (
-            <div className="space-y-1.5">
-              <Label htmlFor="price">정가 (원)</Label>
-              <Input
-                id="price"
-                inputMode="numeric"
-                min="1"
-                step="1"
-                value={price}
-                onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-                placeholder="예: 59000"
+        )}
+        <p className="text-xs text-muted-foreground">가격은 게임 정보로 저장되며, 할인가는 별도로 관리하지 않습니다.</p>
+      </fieldset>
+
+      <PlayBlocksEditor value={blocks} onChange={setBlocks} />
+
+      <div className="space-y-1.5">
+        <Label htmlFor="cover">커버 이미지 URL</Label>
+        <Input id="cover" value={cover} onChange={(e) => setCover(e.target.value)} placeholder="게임 이미지 URL 또는 Storage URL" />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="memo">메모</Label>
+        <Textarea id="memo" className="min-h-24" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="이번 플레이는 어땠나요?" />
+      </div>
+
+      <fieldset>
+        <legend className="mb-2 text-sm font-medium text-foreground">참가자</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {members.map((member) => (
+            <label
+              className="flex items-center gap-2 rounded-lg border border-input p-2 text-sm text-foreground transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+              key={member.id}
+            >
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-input accent-primary"
+                checked={participants.includes(member.id)}
+                onChange={() => setParticipants((x) => (x.includes(member.id) ? x.filter((id) => id !== member.id) : [...x, member.id]))}
               />
-            </div>
-          )}
-          <p className="text-xs text-muted-foreground">가격은 게임 정보로 저장되며, 할인가는 별도로 관리하지 않습니다.</p>
-        </fieldset>
-
-        <PlayBlocksEditor value={blocks} onChange={setBlocks} />
-
-        <div className="space-y-1.5">
-          <Label htmlFor="cover">커버 이미지 URL</Label>
-          <Input id="cover" value={cover} onChange={(e) => setCover(e.target.value)} placeholder="게임 이미지 URL 또는 Storage URL" />
+              {member.display_name}
+            </label>
+          ))}
         </div>
+      </fieldset>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="memo">메모</Label>
-          <Textarea id="memo" className="min-h-24" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="이번 플레이는 어땠나요?" />
-        </div>
-
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-foreground">참가자</legend>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {members.map((member) => (
-              <label
-                className="flex items-center gap-2 rounded-lg border border-input p-2 text-sm text-foreground transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                key={member.id}
-              >
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-input accent-primary"
-                  checked={participants.includes(member.id)}
-                  onChange={() => setParticipants((x) => (x.includes(member.id) ? x.filter((id) => id !== member.id) : [...x, member.id]))}
-                />
-                {member.display_name}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <Button type="submit" className="w-full" size="lg" disabled={saving}>
-          {saving ? "저장 중..." : "세션 저장"}
-        </Button>
-      </Card>
+      <Button type="submit" className="w-full" size="lg" disabled={saving}>
+        {saving ? "저장 중..." : "세션 저장"}
+      </Button>
     </form>
   );
 }

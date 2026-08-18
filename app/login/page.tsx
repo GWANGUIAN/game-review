@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -25,7 +24,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center p-4 py-16">
-      <Card className="w-full max-w-md p-7">
+      <div className="w-full max-w-md">
         <div className="flex items-center gap-3 border-b border-border pb-5">
           <span className="grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary">
             <Gamepad2 size={20} />
@@ -41,7 +40,7 @@ export default function LoginPage() {
         <Button onClick={signIn} disabled={loading} className="mt-7 w-full" size="lg">
           {loading ? "연결 중..." : "Google로 계속하기"}
         </Button>
-      </Card>
+      </div>
     </main>
   );
 }

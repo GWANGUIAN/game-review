@@ -3,7 +3,6 @@ import { CircleAlert, Clock3 } from "lucide-react";
 
 import { getViewer } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 export default async function PendingPage() {
   const { profile } = await getViewer();
@@ -11,7 +10,7 @@ export default async function PendingPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center p-4 py-16">
-      <Card className="w-full max-w-md p-7 text-center">
+      <div className="w-full max-w-md text-center">
         <div
           className={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
             rejected ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
@@ -27,7 +26,7 @@ export default async function PendingPage() {
         <Button asChild variant="outline" className="mt-7">
           <Link href="/">아카이브로 돌아가기</Link>
         </Button>
-      </Card>
+      </div>
     </main>
   );
 }

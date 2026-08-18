@@ -6,7 +6,6 @@ import { Star } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,64 +54,62 @@ export function ReviewForm({
   }
 
   return (
-    <form onSubmit={submit}>
-      <Card className="space-y-4 p-6">
-        <div className="border-b border-border pb-3">
-          <p className="text-sm font-semibold text-primary">Review editor</p>
-          <h2 className="mt-1 text-xl font-bold text-foreground">내 리뷰</h2>
-        </div>
-        <div>
-          <Label>별점</Label>
-          <div className="mt-1 flex gap-1">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button type="button" aria-label={`${n}점`} onClick={() => setRating(n)} className="p-0.5" key={n}>
-                <Star className={`h-7 w-7 ${n <= rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button type="button" size="sm" variant={recommended ? "default" : "outline"} onClick={() => setRecommended(true)}>
-            추천
-          </Button>
-          <Button type="button" size="sm" variant={!recommended ? "default" : "outline"} onClick={() => setRecommended(false)}>
-            비추천
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {options.map((tag) => (
-            <button
-              type="button"
-              key={tag}
-              onClick={() => setTags((t) => (t.includes(tag) ? t.filter((x) => x !== tag) : [...t, tag]))}
-            >
-              <Badge variant={tags.includes(tag) ? "default" : "outline"} className="cursor-pointer">
-                #{tag}
-              </Badge>
+    <form onSubmit={submit} className="space-y-4">
+      <div className="border-b border-border pb-3">
+        <p className="text-sm font-semibold text-primary">Review editor</p>
+        <h2 className="mt-1 text-xl font-bold text-foreground">내 리뷰</h2>
+      </div>
+      <div>
+        <Label>별점</Label>
+        <div className="mt-1 flex gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button type="button" aria-label={`${n}점`} onClick={() => setRating(n)} className="p-0.5" key={n}>
+              <Star className={`h-7 w-7 transition-colors ${n <= rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
             </button>
           ))}
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="review-images">스크린샷 (최대 3장)</Label>
-          <input
-            id="review-images"
-            className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary-foreground"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 3))}
-          />
-        </div>
-        <Textarea
-          className="min-h-32"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="플레이 경험을 공유해 주세요."
-        />
-        <Button type="submit" className="w-full">
-          리뷰 저장
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" size="sm" variant={recommended ? "default" : "outline"} onClick={() => setRecommended(true)}>
+          추천
         </Button>
-      </Card>
+        <Button type="button" size="sm" variant={!recommended ? "default" : "outline"} onClick={() => setRecommended(false)}>
+          비추천
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {options.map((tag) => (
+          <button
+            type="button"
+            key={tag}
+            onClick={() => setTags((t) => (t.includes(tag) ? t.filter((x) => x !== tag) : [...t, tag]))}
+          >
+            <Badge variant={tags.includes(tag) ? "default" : "outline"} className="cursor-pointer transition-colors">
+              #{tag}
+            </Badge>
+          </button>
+        ))}
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="review-images">스크린샷 (최대 3장)</Label>
+        <input
+          id="review-images"
+          className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary-foreground"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 3))}
+        />
+      </div>
+      <Textarea
+        className="min-h-32"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="플레이 경험을 공유해 주세요."
+      />
+      <Button type="submit" className="w-full">
+        리뷰 저장
+      </Button>
     </form>
   );
 }

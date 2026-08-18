@@ -37,7 +37,7 @@ export default async function Dashboard() {
             const joined = (session.session_participants ?? []).some((p: { profile_id: string }) => p.profile_id === user.id);
             return (
               <Link href={`/session/${session.id}`} key={session.id}>
-                <Card className="h-full p-5 transition-shadow hover:shadow-md">
+                <Card className="h-full p-5 transition-colors hover:border-foreground/30">
                   <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                     {session.starts_at ? kstDate(session.starts_at) : "일정 미정"}
                   </p>

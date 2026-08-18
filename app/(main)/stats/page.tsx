@@ -2,7 +2,6 @@ import { Star } from "lucide-react";
 
 import { requireApproved } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default async function StatsPage() {
@@ -16,20 +15,20 @@ export default async function StatsPage() {
   return (
     <>
       <PageHeader eyebrow="Club records" title="모임 통계" />
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="p-6">
+      <div className="flex flex-wrap items-baseline gap-x-10 gap-y-4">
+        <div>
           <p className="text-sm font-medium text-muted-foreground">평균 별점</p>
-          <p className="mt-2 flex items-center gap-2 text-5xl font-bold tabular-nums text-foreground">
+          <p className="mt-1 flex items-center gap-2 text-4xl font-bold tabular-nums text-foreground">
             {average}
-            <Star className="h-8 w-8 fill-amber-400 text-amber-400" />
+            <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
           </p>
-        </Card>
-        <Card className="p-6">
+        </div>
+        <div>
           <p className="text-sm font-medium text-muted-foreground">리뷰 수</p>
-          <p className="mt-2 text-5xl font-bold tabular-nums text-foreground">{reviews?.length ?? 0}</p>
-        </Card>
+          <p className="mt-1 text-4xl font-bold tabular-nums text-foreground">{reviews?.length ?? 0}</p>
+        </div>
       </div>
-      <Card className="mt-4 p-6">
+      <div className="mt-10 border-t border-border pt-6">
         <p className="text-sm font-semibold text-primary">Popular tags</p>
         <h2 className="mt-1 font-bold text-foreground">인기 태그</h2>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -43,7 +42,7 @@ export default async function StatsPage() {
             <p className="text-sm text-muted-foreground">아직 태그가 없어요.</p>
           )}
         </div>
-      </Card>
+      </div>
     </>
   );
 }
