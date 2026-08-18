@@ -56,7 +56,7 @@ export default async function Home() {
       .limit(10),
     supabase
       .from("reviews")
-      .select("id,rating,content,session_id,profiles(display_name,avatar_url),play_sessions!inner(games(name,cover_url))")
+      .select("id,rating,content,session_id,profiles!profile_id(display_name,avatar_url),play_sessions!inner(games(name,cover_url))")
       .order("created_at", { ascending: false })
       .limit(5),
     supabase.from("games").select("*", { count: "exact", head: true }),

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function StatsPage() {
   const { supabase } = await requireApproved();
-  const { data: reviews } = await supabase.from("reviews").select("rating,tags,profiles(display_name)");
+  const { data: reviews } = await supabase.from("reviews").select("rating,tags,profiles!profile_id(display_name)");
   const average = reviews?.length ? (reviews.reduce((n, r) => n + r.rating, 0) / reviews.length).toFixed(1) : "–";
   const counts = new Map<string, number>();
   reviews?.forEach((r) => r.tags?.forEach((tag: string) => counts.set(tag, (counts.get(tag) ?? 0) + 1)));

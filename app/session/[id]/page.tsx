@@ -15,7 +15,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const { data: session, error } = await supabase
     .from("play_sessions")
     .select(
-      "*,games(name,cover_url,price_krw),session_play_blocks(*),session_participants(profile_id,profiles(display_name,avatar_url)),reviews(*,profiles(display_name,avatar_url))"
+      "*,games(name,cover_url,price_krw),session_play_blocks(*),session_participants(profile_id,profiles(display_name,avatar_url)),reviews(*,profiles!profile_id(display_name,avatar_url))"
     )
     .eq("id", id)
     .maybeSingle();
