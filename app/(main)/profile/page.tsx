@@ -1,3 +1,101 @@
 "use client";
-import { useEffect, useState } from "react"; import { createClient } from "@/lib/supabase/client"; import { toast } from "sonner";
-export default function ProfilePage() { const [name, setName] = useState(""); const [avatar, setAvatar] = useState(""); const [file, setFile] = useState<File | null>(null); const [xp, setXp] = useState(0); const [level, setLevel] = useState(1); useEffect(() => { const client = createClient(); client.auth.getUser().then(async ({ data }) => { if (!data.user) return; const { data: profile } = await client.from("profiles").select("display_name,avatar_url,xp,level").eq("id", data.user.id).single(); if (profile) { setName(profile.display_name); setAvatar(profile.avatar_url ?? ""); setXp(profile.xp); setLevel(profile.level); } }); }, []); async function save(e: React.FormEvent) { e.preventDefault(); const client = createClient(); const { data: { user } } = await client.auth.getUser(); if (!user) return; let avatarUrl = avatar || null; if (file) { const path = `${user.id}/${crypto.randomUUID()}-${file.name}`; const { error } = await client.storage.from("avatars").upload(path, file); if (error) return toast.error(error.message); avatarUrl = client.storage.from("avatars").getPublicUrl(path).data.publicUrl; } const { error } = await client.from("profiles").update({ display_name: name, avatar_url: avatarUrl }).eq("id", user.id); error ? toast.error(error.message) : toast.success("프로필을 저장했습니다."); } return <><div className="page-heading"><p className="eyebrow">Member profile</p><h1>내 프로필</h1></div><div className="grid gap-px border border-white/10 bg-white/10 md:grid-cols-2"><form onSubmit={save} className="space-y-4 bg-steam-card p-5"><div className="flex items-center gap-4"><div className="h-16 w-16 border border-steam-blue/50 bg-steam-blue bg-cover" style={avatar ? { backgroundImage: `url(${avatar})` } : {}}/><div><label className="text-sm">닉네임</label><input className="mt-1 w-full" minLength={2} maxLength={24} value={name} onChange={e => setName(e.target.value)}/></div></div><label className="block text-sm">아바타 업로드<input className="mt-1 w-full" type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] ?? null)}/></label><label className="block text-sm">또는 아바타 이미지 URL<input className="mt-1 w-full" value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="Supabase Storage URL"/></label><button className="btn">저장</button></form><section className="bg-steam-card p-5"><p className="eyebrow">Level {level}</p><h2 className="mt-1 text-3xl font-bold text-white">{xp} XP</h2><div className="mt-4 h-2 overflow-hidden bg-black/30"><div className="h-full bg-steam-blue" style={{ width: `${xp % 100}%` }}/></div><h3 className="mt-6 font-bold text-white">트로피 케이스</h3><div className="mt-3 flex gap-3 text-4xl"><span title="첫 발자국">🏅</span><span className={xp >= 250 ? "" : "grayscale opacity-30"}>🏆</span><span className={xp >= 500 ? "" : "grayscale opacity-30"}>👑</span></div></section></div></>; }
+
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/page-header";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export default function ProfilePage() {
+  const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [xp, setXp] = useState(0);
+  const [level, setLevel] = useState(1);
+
+  useEffect(() => {
+    const client = createClient();
+    client.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: profile } = await client
+        .from("profiles")
+        .select("display_name,avatar_url,xp,level")
+        .eq("id", data.user.id)
+        .single();
+      if (profile) {
+        setName(profile.display_name);
+        setAvatar(profile.avatar_url ?? "");
+        setXp(profile.xp);
+        setLevel(profile.level);
+      }
+    });
+  }, []);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const client = createClient();
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    if (!user) return;
+    let avatarUrl = avatar || null;
+    if (file) {
+      const path = `${user.id}/${crypto.randomUUID()}-${file.name}`;
+      const { error } = await client.storage.from("avatars").upload(path, file);
+      if (error) return toast.error(error.message);
+      avatarUrl = client.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+    }
+    const { error } = await client.from("profiles").update({ display_name: name, avatar_url: avatarUrl }).eq("id", user.id);
+    error ? toast.error(error.message) : toast.success("프로필을 저장했습니다.");
+  }
+
+  return (
+    <>
+      <PageHeader eyebrow="Member profile" title="내 프로필" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="p-6">
+          <form onSubmit={save} className="space-y-5">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={avatar || undefined} alt="" />
+                <AvatarFallback>{name.slice(0, 2) || "?"}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor="display-name">닉네임</Label>
+                <Input id="display-name" minLength={2} maxLength={24} value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="avatar-file">아바타 업로드</Label>
+              <Input id="avatar-file" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="avatar-url">또는 아바타 이미지 URL</Label>
+              <Input id="avatar-url" value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="Supabase Storage URL" />
+            </div>
+            <Button type="submit" className="w-full">
+              저장
+            </Button>
+          </form>
+        </Card>
+        <Card className="p-6">
+          <p className="text-sm font-semibold text-primary">Level {level}</p>
+          <h2 className="mt-1 text-3xl font-bold tabular-nums text-foreground">{xp} XP</h2>
+          <Progress value={xp % 100} className="mt-4" />
+          <h3 className="mt-6 font-bold text-foreground">트로피 케이스</h3>
+          <div className="mt-3 flex gap-3 text-4xl">
+            <span title="첫 발자국">🏅</span>
+            <span className={xp >= 250 ? "" : "opacity-25 grayscale"}>🏆</span>
+            <span className={xp >= 500 ? "" : "opacity-25 grayscale"}>👑</span>
+          </div>
+        </Card>
+      </div>
+    </>
+  );
+}

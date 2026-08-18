@@ -1,22 +1,91 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css');
+
 @layer base {
-  * { @apply border-white/10; border-radius: 0 !important; }
-  body { @apply min-h-screen bg-steam-ink text-steam-mist antialiased; font-family: 'Mona12', monospace; image-rendering: pixelated; background-color: #10051f; background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 4px), linear-gradient(rgba(118,29,153,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(79,246,255,.12) 1px, transparent 1px); background-size: auto, 24px 24px, 24px 24px; }
-  body::before { content: ""; pointer-events: none; position: fixed; inset: 0; z-index: 50; opacity: .2; background: repeating-linear-gradient(90deg, transparent 0 2px, rgba(255,255,255,.025) 2px 3px); }
-  input, textarea, select { @apply border-2 border-fuchsia-400/45 bg-[#120821] px-3 py-2 text-white outline-none transition focus:border-steam-blue focus:ring-0; box-shadow: inset 2px 2px 0 rgba(0,0,0,.45); }
-  button, a { -webkit-tap-highlight-color: transparent; }
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 6% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 10%;
+
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 6% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 234 89% 74%;
+    --primary-foreground: 240 10% 4%;
+
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 4% 18%;
+    --input: 240 4% 18%;
+    --ring: 234 89% 74%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
-@layer components {
-  .panel { @apply border-2 border-fuchsia-400/45 bg-steam-card p-5 shadow-steam; }
-  .btn { @apply inline-flex items-center justify-center gap-2 border-2 border-white bg-steam-blue px-4 py-2 font-bold text-[#170827] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#f4eaff] disabled:opacity-50; box-shadow: 4px 4px 0 #7a1c80; }
-  .btn-quiet { @apply inline-flex items-center justify-center gap-2 border-2 border-fuchsia-300/70 bg-[#1a0c30] px-4 py-2 text-fuchsia-100 transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-steam-blue hover:text-steam-blue; box-shadow: 3px 3px 0 #07020d; }
-  .eyebrow { @apply text-xs font-bold uppercase tracking-[.16em] text-steam-blue; text-shadow: 2px 2px 0 #6b1d8d; }
-  .data-label { @apply text-[11px] uppercase tracking-[.12em] text-fuchsia-200/75; }
-  .page-heading { @apply mb-8 border-b-2 border-fuchsia-400/45 pb-5; }
-  .page-heading h1 { @apply mt-1 text-3xl font-bold tracking-tight text-white; text-shadow: 3px 3px 0 #7a1c80; }
-  .pixel-frame { @apply border-2 border-steam-blue bg-[#190b2b]; box-shadow: 4px 4px 0 #7a1c80, -2px -2px 0 #f44fe4; }
-  .pixel-icon { @apply inline-grid h-7 w-7 place-items-center border-2 border-steam-blue bg-[#180a29] text-xs text-steam-blue; box-shadow: 2px 2px 0 #7a1c80; }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

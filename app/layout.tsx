@@ -1,3 +1,31 @@
-import type { Metadata } from "next"; import "./globals.css"; import { ThemeProvider } from "@/components/theme-provider"; import { Toaster } from "sonner";
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Toaster } from "sonner";
+
+const pretendard = localFont({
+  src: "../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
+  variable: "--font-sans",
+  display: "swap",
+  weight: "45 920",
+});
+
 export const metadata: Metadata = { title: "종합 게임 동아리", description: "게임 모임의 플레이 기록과 리뷰 아카이브", icons: { icon: [{ url: "/brand/gamepad-32.png", sizes: "32x32", type: "image/png" }, { url: "/brand/gamepad-48.png", sizes: "48x48", type: "image/png" }, { url: "/brand/favicon.ico", type: "image/x-icon" }], apple: [{ url: "/brand/gamepad-180.png", sizes: "180x180", type: "image/png" }] } };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="ko" suppressHydrationWarning><body><ThemeProvider>{children}<Toaster richColors position="top-center" /></ThemeProvider></body></html>; }
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="ko" className={pretendard.variable} suppressHydrationWarning>
+      <body className="flex min-h-screen flex-col font-sans">
+        <ThemeProvider>
+          <SiteHeader />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
+          <Toaster richColors position="top-center" />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

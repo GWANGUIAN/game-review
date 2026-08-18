@@ -1,3 +1,22 @@
 "use client";
+
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-export function ThemeToggle() { const { resolvedTheme, setTheme } = useTheme(); return <button aria-label="테마 전환" className="pixel-icon" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>{resolvedTheme === "dark" ? "LT" : "DK"}</button>; }
+
+import { Button } from "@/components/ui/button";
+
+export function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="테마 전환"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+    >
+      <Sun className="hidden h-4 w-4 dark:block" />
+      <Moon className="block h-4 w-4 dark:hidden" />
+    </Button>
+  );
+}

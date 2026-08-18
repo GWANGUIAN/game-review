@@ -1,10 +1,305 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
+import { Gamepad2, Clock, MessageSquare, Users, Star, Trophy } from "lucide-react";
+
 import { createClient } from "@/lib/supabase/server";
 import { kstDate, minutesLabel } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Game = { name: string; cover_url: string | null } | null;
-type Session = { id: string; starts_at: string | null; total_play_minutes: number | null; memo: string | null; games: Game };
-type Review = { id: string; rating: number; content: string; session_id: string; games: Game };
-type ReviewRow = Omit<Review, "games"> & { play_sessions: { games: Game | Game[] } | { games: Game | Game[] }[] | null };
-export default async function Home() { const supabase = await createClient(); const [{ data: sessions }, { data: reviews }] = await Promise.all([supabase.from("play_sessions").select("id,starts_at,total_play_minutes,memo,games(name,cover_url)").order("starts_at", { ascending: false }).limit(6), supabase.from("reviews").select("id,rating,content,session_id,play_sessions!inner(games(name,cover_url))").order("created_at", { ascending: false }).limit(4)]); const latestSessions = (sessions ?? []).map(session => ({ ...session, games: Array.isArray(session.games) ? session.games[0] ?? null : session.games })) as unknown as Session[]; const latestReviews = ((reviews ?? []) as unknown as ReviewRow[]).map(review => { const session = Array.isArray(review.play_sessions) ? review.play_sessions[0] : review.play_sessions; const games = session?.games; return { ...review, games: Array.isArray(games) ? games[0] ?? null : games ?? null }; }) as Review[]; return <><SiteHeader/><main className="mx-auto max-w-7xl px-4 py-10 md:py-14"><section className="border-b-2 border-fuchsia-400/55 pb-10 md:flex md:items-end md:justify-between"><div className="max-w-2xl"><p className="eyebrow">Player one / game session archive</p><h1 className="mt-4 text-4xl font-bold leading-[1.12] tracking-tight text-white md:text-6xl" style={{ textShadow: "5px 5px 0 #7a1c80" }}>같이 플레이한<br/><span className="text-steam-blue">기억을, 선명하게.</span></h1><p className="mt-5 max-w-xl text-base leading-7 text-fuchsia-100/85">종합 게임 동아리의 세션과 솔직한 후기를 차곡차곡 쌓는 게임 아카이브입니다.</p></div><div className="pixel-frame mt-8 p-4 md:mt-0"><p className="data-label">Game club</p><p className="mt-1 text-sm text-white">세션 · 리뷰 아카이브</p><Link href="/login" className="btn mt-3 text-sm">모임에 참여하기 &gt;</Link></div></section><section className="pt-10"><div className="mb-5"><p className="eyebrow">Stage select / latest sessions</p><h2 className="mt-1 text-2xl font-bold text-white">최근 플레이 세션</h2></div>{latestSessions.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{latestSessions.map(session => <Link className="pixel-frame group p-3 transition hover:-translate-x-0.5 hover:-translate-y-0.5" href={`/session/${session.id}`} key={session.id}><div className="mb-4 flex h-40 items-end border-2 border-fuchsia-400/35 bg-steam-ink bg-cover bg-center p-3" style={session.games?.cover_url ? { backgroundImage: `linear-gradient(0deg, rgba(16,5,31,.8), transparent 65%), url(${session.games.cover_url})` } : {}}><span className="text-xs text-fuchsia-100/80">{session.starts_at ? kstDate(session.starts_at) : "DATE TBA"}</span></div><p className="data-label">{minutesLabel(session.total_play_minutes ?? 0)}</p><h3 className="mt-1 flex items-center justify-between text-lg font-bold text-white">{session.games?.name ?? "알 수 없는 게임"}<span className="text-steam-blue">&gt;&gt;</span></h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-fuchsia-100/70">{session.memo || "플레이 기록을 확인해 보세요."}</p></Link>)}</div> : <div className="pixel-frame p-10 text-center text-sm text-fuchsia-100/65">아직 공개된 플레이 세션이 없습니다.</div>}</section><section className="grid gap-8 border-t-2 border-fuchsia-400/45 pt-12 md:grid-cols-[.85fr_1.15fr]"><div><p className="eyebrow">High score / community notes</p><h2 className="mt-2 text-2xl font-bold text-white">최근 리뷰</h2><p className="mt-3 max-w-xs text-sm leading-6 text-fuchsia-100/70">플레이어가 직접 남긴 짧고 솔직한 기록입니다.</p><div className="mt-6 flex gap-2"><span className="pixel-icon">MSG</span><span className="pixel-icon">TIME</span><span className="pixel-icon">STAR</span></div></div><div className="pixel-frame divide-y-2 divide-fuchsia-400/25 px-4">{latestReviews.length ? latestReviews.map(review => <Link className="block py-5 transition hover:bg-fuchsia-400/10" href={`/session/${review.session_id}`} key={review.id}><div className="flex items-start justify-between gap-4"><div><p className="data-label">{review.games?.name ?? "Game review"}</p><p className="mt-2 line-clamp-2 leading-7 text-fuchsia-50">{review.content}</p></div><span className="shrink-0 text-sm text-yellow-300">{review.rating}.0 / 5</span></div></Link>) : <p className="py-8 text-sm text-fuchsia-100/60">아직 작성된 리뷰가 없습니다.</p>}</div></section></main></>; }
+type Session = {
+  id: string;
+  starts_at: string | null;
+  total_play_minutes: number | null;
+  memo: string | null;
+  games: Game;
+};
+type Profile = { display_name: string; avatar_url: string | null } | null;
+type Review = {
+  id: string;
+  rating: number;
+  content: string;
+  session_id: string;
+  games: Game;
+  profiles: Profile;
+};
+type ReviewRow = Omit<Review, "games" | "profiles"> & {
+  profiles: Profile | Profile[] | null;
+  play_sessions: { games: Game | Game[] } | { games: Game | Game[] }[] | null;
+};
+type RankingRow = {
+  profile_id: string;
+  profiles: Profile | Profile[] | null;
+  play_sessions: { total_play_minutes: number | null } | { total_play_minutes: number | null }[] | null;
+};
+type RankedMember = { profileId: string; displayName: string; avatarUrl: string | null; totalMinutes: number };
+
+const one = <T,>(value: T | T[] | null | undefined): T | null =>
+  Array.isArray(value) ? value[0] ?? null : value ?? null;
+
+export default async function Home() {
+  const supabase = await createClient();
+
+  const [
+    { data: sessions },
+    { data: reviews },
+    { count: gameCount },
+    { count: reviewCount },
+    { count: memberCount },
+    { data: playMinutesRows },
+    { data: participantRows },
+  ] = await Promise.all([
+    supabase
+      .from("play_sessions")
+      .select("id,starts_at,total_play_minutes,memo,games(name,cover_url)")
+      .order("starts_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("reviews")
+      .select("id,rating,content,session_id,profiles(display_name,avatar_url),play_sessions!inner(games(name,cover_url))")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase.from("games").select("*", { count: "exact", head: true }),
+    supabase.from("reviews").select("*", { count: "exact", head: true }),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("status", "approved"),
+    supabase.from("play_sessions").select("total_play_minutes"),
+    supabase.from("session_participants").select("profile_id,profiles(display_name,avatar_url),play_sessions(total_play_minutes)"),
+  ]);
+
+  const latestSessions = (sessions ?? []).map((session) => ({
+    ...session,
+    games: one(session.games),
+  })) as unknown as Session[];
+
+  const latestReviews = ((reviews ?? []) as unknown as ReviewRow[]).map((review) => {
+    const session = one(review.play_sessions);
+    return {
+      ...review,
+      profiles: one(review.profiles),
+      games: one(session?.games ?? null),
+    };
+  }) as Review[];
+
+  const totalMinutes = (playMinutesRows ?? []).reduce((sum, row) => sum + (row.total_play_minutes ?? 0), 0);
+
+  const rankingMap = new Map<string, RankedMember>();
+  for (const row of (participantRows ?? []) as unknown as RankingRow[]) {
+    const profile = one(row.profiles);
+    const session = one(row.play_sessions);
+    if (!profile) continue;
+    const existing = rankingMap.get(row.profile_id);
+    const minutes = session?.total_play_minutes ?? 0;
+    if (existing) {
+      existing.totalMinutes += minutes;
+    } else {
+      rankingMap.set(row.profile_id, {
+        profileId: row.profile_id,
+        displayName: profile.display_name,
+        avatarUrl: profile.avatar_url,
+        totalMinutes: minutes,
+      });
+    }
+  }
+  const ranking = Array.from(rankingMap.values())
+    .filter((member) => member.totalMinutes > 0)
+    .sort((a, b) => b.totalMinutes - a.totalMinutes)
+    .slice(0, 5);
+  const topMinutes = ranking[0]?.totalMinutes ?? 1;
+
+  const heroSession = latestSessions[0];
+  const rankColors = ["bg-amber-400 text-amber-950", "bg-zinc-300 text-zinc-800", "bg-orange-400 text-orange-950"];
+
+  const stats = [
+    { label: "등록 게임", value: `${gameCount ?? 0}종`, icon: Gamepad2 },
+    { label: "총 플레이 시간", value: minutesLabel(totalMinutes), icon: Clock },
+    { label: "누적 리뷰", value: `${reviewCount ?? 0}개`, icon: MessageSquare },
+    { label: "활동 멤버", value: `${memberCount ?? 0}명`, icon: Users },
+  ];
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-10 md:py-14">
+      {/* 히어로: 벤토 그리드 */}
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
+        <div className="flex flex-col justify-center rounded-2xl border border-border bg-gradient-to-br from-primary/[0.07] to-transparent p-8 md:col-span-2 md:row-span-2 md:p-10">
+          <p className="text-sm font-semibold text-primary">Game Club Archive</p>
+          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl">
+            같이 플레이한
+            <br />
+            기억을, 선명하게.
+          </h1>
+          <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
+            종합 게임 동아리의 세션과 솔직한 후기를 차곡차곡 쌓는 게임 아카이브입니다.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link href="/login">모임에 참여하기</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/sessions">세션 둘러보기</Link>
+            </Button>
+          </div>
+        </div>
+
+        <Link
+          href={heroSession ? `/session/${heroSession.id}` : "/sessions"}
+          className="group relative flex min-h-[180px] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-muted bg-cover bg-center p-5 md:col-span-1 md:row-span-2"
+          style={
+            heroSession?.games?.cover_url
+              ? { backgroundImage: `linear-gradient(0deg, rgba(0,0,0,.75), rgba(0,0,0,.15) 60%), url(${heroSession.games.cover_url})` }
+              : undefined
+          }
+        >
+          <p className="text-xs font-medium uppercase tracking-wide text-white/70">최신 세션</p>
+          <p className="mt-1 text-lg font-bold text-white transition-transform group-hover:translate-x-0.5">
+            {heroSession?.games?.name ?? "아직 세션이 없어요"}
+          </p>
+        </Link>
+
+        <Card className="flex flex-col justify-center p-5 md:col-span-1">
+          <Gamepad2 className="h-5 w-5 text-primary" />
+          <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">{gameCount ?? 0}종</p>
+          <p className="text-sm text-muted-foreground">등록된 게임</p>
+        </Card>
+
+        <Card className="flex flex-col justify-center p-5 md:col-span-1">
+          <Clock className="h-5 w-5 text-primary" />
+          <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">{minutesLabel(totalMinutes)}</p>
+          <p className="text-sm text-muted-foreground">누적 플레이 시간</p>
+        </Card>
+      </section>
+
+      {/* 요약 통계 */}
+      <section className="mt-16">
+        <h2 className="text-xl font-bold text-foreground">한눈에 보는 동아리 기록</h2>
+        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <Card key={stat.label} className="p-5">
+              <stat.icon className="h-5 w-5 text-primary" />
+              <p className="mt-3 text-2xl font-bold tabular-nums text-foreground">{stat.value}</p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* 플레이 시간 랭킹 */}
+      <section className="mt-16">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          <h2 className="text-xl font-bold text-foreground">플레이 시간 랭킹</h2>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">가장 많이 플레이한 멤버 TOP 5</p>
+        <Card className="mt-5 divide-y divide-border p-2">
+          {ranking.length ? (
+            ranking.map((member, index) => (
+              <div key={member.profileId} className="flex items-center gap-4 px-3 py-3.5">
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                    rankColors[index] ?? "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {index + 1}
+                </span>
+                <Avatar className="h-9 w-9 shrink-0">
+                  <AvatarImage src={member.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{member.displayName.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{member.displayName}</p>
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${Math.max(6, (member.totalMinutes / topMinutes) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                  {minutesLabel(member.totalMinutes)}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="p-8 text-center text-sm text-muted-foreground">아직 집계된 플레이 기록이 없습니다.</p>
+          )}
+        </Card>
+      </section>
+
+      {/* 최근 플레이 세션 */}
+      <section className="mt-16">
+        <h2 className="text-xl font-bold text-foreground">최근 플레이 세션</h2>
+        {latestSessions.length ? (
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {latestSessions.map((session) => (
+              <Link key={session.id} href={`/session/${session.id}`}>
+                <Card className="h-full overflow-hidden p-0 transition-shadow hover:shadow-md">
+                  <div
+                    className="flex h-36 items-end bg-muted bg-cover bg-center p-3"
+                    style={
+                      session.games?.cover_url
+                        ? { backgroundImage: `linear-gradient(0deg, rgba(0,0,0,.7), transparent 65%), url(${session.games.cover_url})` }
+                        : undefined
+                    }
+                  >
+                    <span className="text-xs font-medium text-white/85">
+                      {session.starts_at ? kstDate(session.starts_at) : "날짜 미정"}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {minutesLabel(session.total_play_minutes ?? 0)}
+                    </p>
+                    <h3 className="mt-1 font-bold text-foreground">{session.games?.name ?? "알 수 없는 게임"}</h3>
+                    <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+                      {session.memo || "플레이 기록을 확인해 보세요."}
+                    </p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <Card className="mt-5 p-10 text-center text-sm text-muted-foreground">아직 공개된 플레이 세션이 없습니다.</Card>
+        )}
+      </section>
+
+      {/* 최근 리뷰 */}
+      <section className="mt-16 pb-4">
+        <h2 className="text-xl font-bold text-foreground">최근 리뷰</h2>
+        <p className="mt-1 text-sm text-muted-foreground">플레이어가 직접 남긴 짧고 솔직한 기록입니다.</p>
+        <Card className="mt-5 divide-y divide-border">
+          {latestReviews.length ? (
+            latestReviews.map((review) => (
+              <Link key={review.id} href={`/session/${review.session_id}`} className="block px-5 py-4 transition-colors hover:bg-accent/50">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-9 w-9 shrink-0">
+                    <AvatarImage src={review.profiles?.avatar_url ?? undefined} alt="" />
+                    <AvatarFallback>{review.profiles?.display_name?.slice(0, 2) ?? "?"}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {review.profiles?.display_name ?? "익명"} · {review.games?.name ?? "게임 리뷰"}
+                      </p>
+                      <span className="flex shrink-0 items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3.5 w-3.5 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                          />
+                        ))}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground">{review.content}</p>
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <p className="p-8 text-center text-sm text-muted-foreground">아직 작성된 리뷰가 없습니다.</p>
+          )}
+        </Card>
+      </section>
+    </main>
+  );
+}

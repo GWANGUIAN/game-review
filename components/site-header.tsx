@@ -1,2 +1,74 @@
-import Image from "next/image"; import Link from "next/link"; import { ThemeToggle } from "./theme-toggle"; import { getViewer } from "@/lib/auth";
-export async function SiteHeader() { const { user, profile } = await getViewer(); return <header className="sticky top-0 z-20 border-b-2 border-fuchsia-400/55 bg-steam-ink/95 backdrop-blur"><nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4"><Link className="flex items-center gap-3 font-bold text-white" href="/"><span className="pixel-frame grid h-10 w-10 place-items-center overflow-hidden"><Image src="/brand/gamepad-48.png" alt="" width={32} height={32} priority/></span><span className="text-sm tracking-wide sm:text-base">종합 게임 동아리</span></Link><div className="flex items-center gap-2 text-sm">{profile?.status === "approved" && <><Link className="hidden px-2 py-1 text-fuchsia-100 hover:text-steam-blue sm:block" href="/dashboard">대시보드</Link><Link className="hidden px-2 py-1 text-fuchsia-100 hover:text-steam-blue sm:block" href="/sessions">세션</Link><Link className="hidden px-2 py-1 text-fuchsia-100 hover:text-steam-blue sm:block" href="/stats">통계</Link></>}{profile?.role === "admin" && <Link className="pixel-icon hidden sm:inline-grid" href="/admin" title="관리자">AD</Link>}{user ? <Link className="btn-quiet py-1.5" href="/profile">{profile?.display_name ?? "프로필"}</Link> : <Link className="btn py-1.5" href="/login">로그인</Link>}<ThemeToggle /></div></nav></header>; }
+import Image from "next/image";
+import Link from "next/link";
+
+import { getViewer } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "./theme-toggle";
+import { MobileNav } from "./mobile-nav";
+
+export async function SiteHeader() {
+  const { user, profile } = await getViewer();
+
+  const navLinks =
+    profile?.status === "approved"
+      ? [
+          { href: "/dashboard", label: "대시보드" },
+          { href: "/sessions", label: "세션" },
+          { href: "/stats", label: "통계" },
+        ]
+      : [];
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+        <Link className="flex items-center gap-2.5 font-semibold text-foreground" href="/">
+          <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-lg bg-primary/10">
+            <Image src="/brand/gamepad-48.png" alt="" width={22} height={22} priority />
+          </span>
+          <span className="text-sm sm:text-base">종합 게임 동아리</span>
+        </Link>
+
+        <div className="flex items-center gap-1">
+          <div className="mr-2 hidden items-center gap-1 md:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+            {profile?.role === "admin" && (
+              <Link href="/admin">
+                <Badge variant="outline" className="ml-1 cursor-pointer">
+                  관리자
+                </Badge>
+              </Link>
+            )}
+          </div>
+
+          {user ? (
+            <Button asChild variant="secondary" size="sm" className="hidden md:inline-flex">
+              <Link href="/profile">{profile?.display_name ?? "프로필"}</Link>
+            </Button>
+          ) : (
+            <Button asChild size="sm" className="hidden md:inline-flex">
+              <Link href="/login">로그인</Link>
+            </Button>
+          )}
+
+          <ThemeToggle />
+
+          <MobileNav
+            links={navLinks}
+            isAdmin={profile?.role === "admin"}
+            authHref={user ? "/profile" : "/login"}
+            authLabel={user ? (profile?.display_name ?? "프로필") : "로그인"}
+          />
+        </div>
+      </nav>
+    </header>
+  );
+}

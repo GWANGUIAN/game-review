@@ -1,2 +1,2 @@
 import { requireApproved } from "@/lib/auth"; import { SessionForm } from "@/components/session-form";
-export default async function NewSessionPage() { const { supabase } = await requireApproved(); const { data } = await supabase.from("profiles").select("id,display_name").eq("status", "approved").order("display_name"); return <main className="px-4 py-8"><SessionForm members={data ?? []}/></main>; }
+export default async function NewSessionPage() { const { supabase } = await requireApproved(); const { data } = await supabase.from("profiles").select("id,display_name").eq("status", "approved").order("display_name"); return <main className="px-4 py-10"><SessionForm members={data ?? []}/></main>; }

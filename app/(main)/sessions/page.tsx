@@ -1,2 +1,51 @@
-import Link from "next/link"; import { requireApproved } from "@/lib/auth"; import { kstDate, minutesLabel, priceLabel } from "@/lib/utils";
-export default async function SessionsPage() { const { supabase } = await requireApproved(); const { data } = await supabase.from("play_sessions").select("id,starts_at,total_play_minutes,memo,games(name,cover_url,price_krw)").order("starts_at", { ascending: false }); return <><div className="page-heading flex items-end justify-between gap-4"><div><p className="eyebrow">Session log</p><h1>플레이 세션</h1></div><Link href="/session/new" className="btn">새 세션</Link></div><div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">{data?.map(s => { const game = s.games as unknown as { name: string; cover_url: string | null; price_krw: number | null } | null; return <Link className="bg-steam-card p-4 transition hover:bg-[#1d2633]" href={`/session/${s.id}`} key={s.id}><div className="mb-4 h-32 border border-white/10 bg-steam-ink bg-cover bg-center" style={game?.cover_url ? { backgroundImage: `url(${game.cover_url})` } : {}}/><h2 className="font-bold text-white">{game?.name}</h2><p className="mt-1 text-sm text-steam-mist/70">{s.starts_at && kstDate(s.starts_at)} · {minutesLabel(s.total_play_minutes ?? 0)} · {priceLabel(game?.price_krw)}</p></Link>; })}</div></>; }
+import Link from "next/link";
+
+import { requireApproved } from "@/lib/auth";
+import { kstDate, minutesLabel, priceLabel } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+export default async function SessionsPage() {
+  const { supabase } = await requireApproved();
+  const { data } = await supabase
+    .from("play_sessions")
+    .select("id,starts_at,total_play_minutes,memo,games(name,cover_url,price_krw)")
+    .order("starts_at", { ascending: false });
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Session log"
+        title="플레이 세션"
+        action={
+          <Button asChild>
+            <Link href="/session/new">새 세션</Link>
+          </Button>
+        }
+      />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {data?.map((s) => {
+          const game = s.games as unknown as { name: string; cover_url: string | null; price_krw: number | null } | null;
+          return (
+            <Link href={`/session/${s.id}`} key={s.id}>
+              <Card className="h-full overflow-hidden p-0 transition-shadow hover:shadow-md">
+                <div
+                  className="h-32 bg-muted bg-cover bg-center"
+                  style={game?.cover_url ? { backgroundImage: `url(${game.cover_url})` } : undefined}
+                />
+                <div className="p-4">
+                  <h2 className="font-bold text-foreground">{game?.name}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {s.starts_at && kstDate(s.starts_at)} · {minutesLabel(s.total_play_minutes ?? 0)} · {priceLabel(game?.price_krw)}
+                  </p>
+                </div>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+      {!data?.length && <Card className="p-10 text-center text-sm text-muted-foreground">아직 등록된 세션이 없습니다.</Card>}
+    </>
+  );
+}
