@@ -4,7 +4,6 @@ import { Gamepad2, Clock, MessageSquare, Users, Star, Trophy } from "lucide-reac
 import { createClient } from "@/lib/supabase/server";
 import { kstDate, minutesLabel } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Game = { name: string; cover_url: string | null } | null;
@@ -54,7 +53,7 @@ export default async function Home() {
       .from("play_sessions")
       .select("id,starts_at,total_play_minutes,memo,games(name,cover_url)")
       .order("starts_at", { ascending: false })
-      .limit(6),
+      .limit(10),
     supabase
       .from("reviews")
       .select("id,rating,content,session_id,profiles(display_name,avatar_url),play_sessions!inner(games(name,cover_url))")
@@ -121,21 +120,25 @@ export default async function Home() {
     <main className="mx-auto max-w-7xl px-4 py-10 md:py-14">
       {/* 히어로 */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="flex flex-col justify-center border border-border p-8 md:p-10">
-          <p className="text-sm font-semibold text-primary">Game Club Archive</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">모임에 참여하기</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/sessions">세션 둘러보기</Link>
-            </Button>
+        <div className="relative flex aspect-[4/3] flex-col justify-end overflow-hidden border border-border p-8">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/brand/banner.webp)" }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
+          <div className="relative z-10">
+            <p className="text-sm font-semibold text-white/90">Game Club Archive</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link href="/login">모임에 참여하기</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="border-white/40 bg-white/10 text-white hover:bg-white/20">
+                <Link href="/sessions">세션 둘러보기</Link>
+              </Button>
+            </div>
           </div>
         </div>
 
         <Link
           href={heroSession ? `/session/${heroSession.id}` : "/sessions"}
-          className="group relative flex min-h-[220px] flex-col justify-end overflow-hidden border border-border p-5"
+          className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden border border-border p-5"
         >
           <div
             className="absolute inset-0 bg-muted bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
@@ -154,7 +157,7 @@ export default async function Home() {
       {/* 요약 통계 칩 */}
       <div className="mt-6 flex flex-wrap gap-2">
         {stats.map((stat) => (
-          <div key={stat.label} className="inline-flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-sm">
+          <div key={stat.label} className="inline-flex items-center gap-2 border border-border px-3.5 py-1.5 text-sm">
             <stat.icon className="h-3.5 w-3.5 text-primary" />
             <span className="font-semibold tabular-nums text-foreground">{stat.value}</span>
             <span className="text-muted-foreground">{stat.label}</span>
@@ -162,119 +165,118 @@ export default async function Home() {
         ))}
       </div>
 
-      {/* 플레이 시간 랭킹 */}
-      <section className="mt-16">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <h2 className="text-xl font-bold text-foreground">플레이 시간 랭킹</h2>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">가장 많이 플레이한 멤버 TOP 5</p>
-        <div className="mt-5 divide-y divide-border border-t border-border">
-          {ranking.length ? (
-            ranking.map((member, index) => (
-              <div key={member.profileId} className="flex items-center gap-4 px-1 py-3.5 transition-colors hover:bg-accent/40">
-                <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                    rankColors[index] ?? "bg-muted text-muted-foreground"
-                  }`}
+      {/* 하단: 좌 세션 리스트 / 우 랭킹·리뷰 */}
+      <section className="mt-16 grid gap-10 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-bold text-foreground">최근 세션</h2>
+          <div className="mt-5 divide-y divide-border border-t border-border">
+            {latestSessions.length ? (
+              latestSessions.map((session) => (
+                <Link
+                  key={session.id}
+                  href={`/session/${session.id}`}
+                  className="flex items-center gap-4 py-4 transition-colors hover:bg-accent/40"
                 >
-                  {index + 1}
-                </span>
-                <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarImage src={member.avatarUrl ?? undefined} alt="" />
-                  <AvatarFallback>{member.displayName.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">{member.displayName}</p>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                    <div
-                      className="h-full rounded-full bg-primary transition-[width] duration-500"
-                      style={{ width: `${Math.max(6, (member.totalMinutes / topMinutes) * 100)}%` }}
-                    />
+                  <div
+                    className="h-14 w-20 shrink-0 border border-border bg-muted bg-cover bg-center"
+                    style={session.games?.cover_url ? { backgroundImage: `url(${session.games.cover_url})` } : undefined}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-foreground">{session.games?.name ?? "알 수 없는 게임"}</p>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                      {session.starts_at ? kstDate(session.starts_at) : "날짜 미정"} · {minutesLabel(session.total_play_minutes ?? 0)}
+                    </p>
                   </div>
-                </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                  {minutesLabel(member.totalMinutes)}
-                </span>
-              </div>
-            ))
-          ) : (
-            <p className="p-8 text-center text-sm text-muted-foreground">아직 집계된 플레이 기록이 없습니다.</p>
-          )}
+                </Link>
+              ))
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">아직 공개된 플레이 세션이 없습니다.</p>
+            )}
+          </div>
+          <Button asChild variant="outline" className="mt-6">
+            <Link href="/sessions">더보기</Link>
+          </Button>
         </div>
-      </section>
 
-      {/* 최근 플레이 세션 */}
-      <section className="mt-16">
-        <h2 className="text-xl font-bold text-foreground">최근 플레이 세션</h2>
-        {latestSessions.length ? (
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {latestSessions.map((session) => (
-              <Link key={session.id} href={`/session/${session.id}`} className="group">
-                <Card className="h-full overflow-hidden p-0 transition-colors hover:border-foreground/30">
-                  <div className="relative h-36 overflow-hidden">
-                    <div
-                      className="absolute inset-0 bg-muted bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                      style={session.games?.cover_url ? { backgroundImage: `url(${session.games.cover_url})` } : undefined}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                    <span className="absolute bottom-3 left-3 text-xs font-medium text-white/85">
-                      {session.starts_at ? kstDate(session.starts_at) : "날짜 미정"}
+        <div className="space-y-10 lg:col-span-1">
+          {/* 플레이 시간 랭킹 */}
+          <div>
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              <h2 className="text-lg font-bold text-foreground">플레이 시간 랭킹</h2>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">TOP 5</p>
+            <div className="mt-4 divide-y divide-border border-t border-border">
+              {ranking.length ? (
+                ranking.map((member, index) => (
+                  <div key={member.profileId} className="flex items-center gap-3 py-3.5 transition-colors hover:bg-accent/40">
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        rankColors[index] ?? "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                    <Avatar className="h-8 w-8 shrink-0">
+                      <AvatarImage src={member.avatarUrl ?? undefined} alt="" />
+                      <AvatarFallback>{member.displayName.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">{member.displayName}</p>
+                      <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full rounded-full bg-primary transition-[width] duration-500"
+                          style={{ width: `${Math.max(6, (member.totalMinutes / topMinutes) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
+                      {minutesLabel(member.totalMinutes)}
                     </span>
                   </div>
-                  <div className="p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      {minutesLabel(session.total_play_minutes ?? 0)}
-                    </p>
-                    <h3 className="mt-1 font-bold text-foreground">{session.games?.name ?? "알 수 없는 게임"}</h3>
-                    <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
-                      {session.memo || "플레이 기록을 확인해 보세요."}
-                    </p>
-                  </div>
-                </Card>
-              </Link>
-            ))}
+                ))
+              ) : (
+                <p className="py-8 text-center text-sm text-muted-foreground">아직 집계된 플레이 기록이 없습니다.</p>
+              )}
+            </div>
           </div>
-        ) : (
-          <Card className="mt-5 p-10 text-center text-sm text-muted-foreground">아직 공개된 플레이 세션이 없습니다.</Card>
-        )}
-      </section>
 
-      {/* 최근 리뷰 */}
-      <section className="mt-16 pb-4">
-        <h2 className="text-xl font-bold text-foreground">최근 리뷰</h2>
-        <p className="mt-1 text-sm text-muted-foreground">플레이어가 직접 남긴 짧고 솔직한 기록입니다.</p>
-        <div className="mt-5 divide-y divide-border border-t border-border">
-          {latestReviews.length ? (
-            latestReviews.map((review) => (
-              <Link key={review.id} href={`/session/${review.session_id}`} className="block px-1 py-4 transition-colors hover:bg-accent/40">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarImage src={review.profiles?.avatar_url ?? undefined} alt="" />
-                    <AvatarFallback>{review.profiles?.display_name?.slice(0, 2) ?? "?"}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-3">
+          {/* 최근 리뷰 */}
+          <div>
+            <h2 className="text-lg font-bold text-foreground">최근 리뷰</h2>
+            <div className="mt-4 divide-y divide-border border-t border-border">
+              {latestReviews.length ? (
+                latestReviews.map((review) => (
+                  <Link
+                    key={review.id}
+                    href={`/session/${review.session_id}`}
+                    className="block py-4 transition-colors hover:bg-accent/40"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-7 w-7 shrink-0">
+                        <AvatarImage src={review.profiles?.avatar_url ?? undefined} alt="" />
+                        <AvatarFallback>{review.profiles?.display_name?.slice(0, 2) ?? "?"}</AvatarFallback>
+                      </Avatar>
                       <p className="truncate text-sm font-semibold text-foreground">
-                        {review.profiles?.display_name ?? "익명"} · {review.games?.name ?? "게임 리뷰"}
+                        {review.profiles?.display_name ?? "익명"}
                       </p>
-                      <span className="flex shrink-0 items-center gap-0.5">
+                      <span className="ml-auto flex shrink-0 items-center gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-3.5 w-3.5 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                            className={`h-3 w-3 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
                           />
                         ))}
                       </span>
                     </div>
-                    <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground">{review.content}</p>
-                  </div>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <p className="p-8 text-center text-sm text-muted-foreground">아직 작성된 리뷰가 없습니다.</p>
-          )}
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{review.content}</p>
+                  </Link>
+                ))
+              ) : (
+                <p className="py-8 text-center text-sm text-muted-foreground">아직 작성된 리뷰가 없습니다.</p>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </main>

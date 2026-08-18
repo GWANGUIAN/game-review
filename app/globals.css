@@ -72,6 +72,13 @@
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-image: radial-gradient(ellipse 90% 55% at 50% -10%, hsl(var(--primary) / 0.14), transparent 60%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background-image: radial-gradient(ellipse 90% 55% at 50% -10%, hsl(var(--primary) / 0.16), transparent 65%);
   }
 
   button,
