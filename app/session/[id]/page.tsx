@@ -12,13 +12,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, user, profile } = await getViewer();
-  const { data: session } = await supabase
+  const { data: session, error } = await supabase
     .from("play_sessions")
     .select(
       "*,games(name,cover_url,price_krw),session_play_blocks(*),session_participants(profile_id,profiles(display_name,avatar_url)),reviews(*,profiles(display_name,avatar_url))"
     )
     .eq("id", id)
     .maybeSingle();
+  if (error) console.error("Session lookup failed", { id, message: error.message });
   if (!session) notFound();
 
   const approved = profile?.status === "approved";
