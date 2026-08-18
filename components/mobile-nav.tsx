@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -14,11 +14,13 @@ export function MobileNav({
   isAdmin,
   authHref,
   authLabel,
+  signedIn,
 }: {
   links: NavLink[];
   isAdmin: boolean;
   authHref: string;
   authLabel: string;
+  signedIn: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -60,6 +62,18 @@ export function MobileNav({
           >
             {authLabel}
           </Link>
+          {signedIn && (
+            <form action="/auth/signout" method="post">
+              <Button
+                type="submit"
+                variant="ghost"
+                className="w-full justify-start gap-2 px-3 py-2.5 text-sm font-medium text-muted-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+                로그아웃
+              </Button>
+            </form>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

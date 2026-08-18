@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 
 import { getViewer } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,16 @@ export async function SiteHeader() {
           </div>
 
           {user ? (
-            <Button asChild variant="secondary" size="sm" className="hidden md:inline-flex">
-              <Link href="/profile">{profile?.display_name ?? "프로필"}</Link>
-            </Button>
+            <div className="hidden items-center gap-1 md:flex">
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/profile">{profile?.display_name ?? "프로필"}</Link>
+              </Button>
+              <form action="/auth/signout" method="post">
+                <Button type="submit" variant="ghost" size="icon" aria-label="로그아웃">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
           ) : (
             <Button asChild size="sm" className="hidden md:inline-flex">
               <Link href="/login">로그인</Link>
@@ -66,6 +74,7 @@ export async function SiteHeader() {
             isAdmin={profile?.role === "admin"}
             authHref={user ? "/profile" : "/login"}
             authLabel={user ? (profile?.display_name ?? "프로필") : "로그인"}
+            signedIn={!!user}
           />
         </div>
       </nav>

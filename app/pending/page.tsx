@@ -23,9 +23,16 @@ export default async function PendingPage() {
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           {rejected ? "관리자에게 문의해 주세요." : "관리자가 승인하면 바로 동아리 활동에 참여할 수 있습니다."}
         </p>
-        <Button asChild variant="outline" className="mt-6 w-full">
-          <Link href="/">아카이브로 돌아가기</Link>
-        </Button>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/">아카이브로 돌아가기</Link>
+          </Button>
+          <form action="/auth/signout" method="post">
+            <Button type="submit" variant="ghost" className="w-full">
+              로그아웃
+            </Button>
+          </form>
+        </div>
       </div>
     </main>
   );
